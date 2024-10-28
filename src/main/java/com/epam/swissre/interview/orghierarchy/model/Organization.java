@@ -3,6 +3,7 @@ package com.epam.swissre.interview.orghierarchy.model;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Represents an organization's structure, allowing operations on employees.
@@ -27,10 +28,10 @@ public final class Organization {
    * Retrieves an employee by ID.
    *
    * @param id the ID of the employee
-   * @return the employee with the given ID, or null if not found
+   * @return an Optional with the employee with the given ID, or an empty Optional
    */
-  public Employee getEmployeeById(int id) {
-    return employees.get(id);
+  public Optional<Employee> getEmployeeById(int id) {
+    return Optional.ofNullable(employees.get(id));
   }
 
   /**
@@ -38,7 +39,7 @@ public final class Organization {
    *
    * @return an unmodifiable map of employees
    */
-  public Map<Integer, Employee> getAllEmployees() {
+  public Map<Integer, Employee> getEmployees() {
     return Collections.unmodifiableMap(employees);
   }
 
