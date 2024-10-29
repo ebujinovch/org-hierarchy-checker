@@ -92,7 +92,7 @@ Each line should include:
    ```
    If no file path is provided, the application defaults to using `org-hierarchy-example-1.csv`.
 
-### Example Output
+### Output Format
 
 Upon execution, the application provides analysis results in the following format:
 
@@ -108,4 +108,20 @@ Underpaid managers:
 
 Overpaid managers:  
 [Manager] earns more than intended by [Amount]
+```
+
+Example:
+```
+Organization{employees=Employee{id=305, firstName='Brett', lastName='Hardleaf', salary=34000, managerId=300},
+Employee{id=123, firstName='Joe', lastName='Doe', salary=60000, managerId=null},
+Employee{id=124, firstName='Martin', lastName='Chekov', salary=45000, managerId=123},
+Employee{id=300, firstName='Alice', lastName='Hasacat', salary=50000, managerId=124},
+Employee{id=125, firstName='Bob', lastName='Ronstad', salary=47000, managerId=123}}
+Too long reporting lines: 
+	
+Underpaid managers: 
+	Employee{id=124, firstName='Martin', lastName='Chekov', salary=45000, managerId=123} earns less than intended by 15000.00
+Overpaid managers: 
+	
+
 ```
