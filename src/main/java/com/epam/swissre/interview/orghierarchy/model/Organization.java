@@ -1,14 +1,18 @@
 package com.epam.swissre.interview.orghierarchy.model;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
- * Represents an organization's structure, allowing operations on employees.
+ * Represents an organization consisting of employees. Provides storage and retrieval of employees
+ * by ID and collection of all employees.
  */
 public final class Organization {
+
   private final Map<Integer, Employee> employees = new HashMap<>();
 
   /**
@@ -18,35 +22,38 @@ public final class Organization {
    * @throws IllegalArgumentException if an employee with the same ID already exists
    */
   public void addEmployee(Employee employee) {
-    if (employees.containsKey(employee.id())) {
-      throw new IllegalArgumentException("Employee with ID " + employee.id() + " already exists.");
+    if (employee == null) {
+      throw new IllegalArgumentException("Employee cannot be null.");
     }
-    employees.put(employee.id(), employee);
+    if (employees.put(employee.getId(), employee) != null) {
+      throw new IllegalArgumentException("Duplicate employee ID: " + employee.getId());
+    }
   }
 
   /**
-   * Retrieves an employee by ID.
+   * Retrieves an employee by their unique ID.
    *
-   * @param id the ID of the employee
-   * @return an Optional with the employee with the given ID, or an empty Optional
+   * @param id the unique identifier of the employee
+   * @return an Optional containing the employee if found, otherwise empty
    */
   public Optional<Employee> getEmployeeById(int id) {
     return Optional.ofNullable(employees.get(id));
   }
 
   /**
-   * Returns an unmodifiable view of all employees.
+   * Returns all employees within the organization.
    *
-   * @return an unmodifiable map of employees
+   * @return a collection of all employees
    */
-  public Map<Integer, Employee> getEmployees() {
-    return Collections.unmodifiableMap(employees);
+  public Collection<Employee> getEmployees() {
+    return Collections.unmodifiableCollection(employees.values());
   }
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("Organization Structure:\n");
-    employees.values().forEach(employee -> sb.append(employee).append("\n"));
-    return sb.toString();
+    return "Organization{" +
+        "employees=" + getEmployees().stream().map(Employee::toString)
+        .collect(Collectors.joining("," + System.lineSeparator())) +
+        '}';
   }
 }

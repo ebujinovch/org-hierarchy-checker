@@ -5,6 +5,10 @@ package com.epam.swissre.interview.orghierarchy.exception;
  */
 public class OrgHierarchyException extends RuntimeException {
 
+  public OrgHierarchyException(String message) {
+    super(message);
+  }
+
   public OrgHierarchyException(String message, Throwable cause) {
     super(message, cause);
   }

@@ -1,93 +1,111 @@
-# org-hierarchy-checker
+# OrgHierarchyChecker
 
+OrgHierarchyChecker is a Java-based command-line tool designed for analyzing an organizational
+hierarchy structure within a large company. Given employee data in a CSV file format, this
+application loads the information, validates the hierarchy, and reports on potential structural and
+salary-based improvements.
 
+## Project Goals
 
-## Getting started
+The project was created to:
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+1. **Load and Validate Employee Hierarchy**: Parse employee data from a CSV file, validate the
+   structure, and establish manager-employee relationships.
+2. **Identify Hierarchical Issues**: Detect issues in the reporting structure, such as invalid
+   manager references or overly long chains between employees and the CEO.
+3. **Analyze Manager Salaries**: Identify managers who are underpaid or overpaid based on the
+   salaries of their direct reports.
+4. **Provide Structured Reporting**: Output findings in a clear format, facilitating organizational
+   improvements.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## Requirements
 
-## Add your files
+### Business Requirements
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+The application must output the following 3 reports:
 
+- which managers earn less than they should, and by how much
+- which managers earn more than they should, and by how much
+- which employees have a reporting line which is too long, and by how much
+
+Every manager should earn at least 20% more than the average salary of its direct subordinates, but
+no more than 50% more than that average.
+
+The outliers must be visible in the report.
+
+The reporting line of all employees consisting of more than 4 managers between the employee and the
+CEO are considered too long and should be reported.
+
+### Technical Requirements
+
+- **Java SE (17 or higher)** for running the application.
+- **JUnit** for testing.
+- **Maven** as the build and dependency management tool.
+
+### Input File Structure
+
+The CSV input file must follow this structure:
+
+```csv
+Id,firstName,lastName,salary,managerId
+123,Joe,Doe,60000,
+124,Martin,Chekov,45000,123
+125,Bob,Ronstad,47000,123
+300,Alice,Hasacat,50000,124
+305,Brett,Hardleaf,34000,300
 ```
-cd existing_repo
-git remote add origin https://git.epam.com/egor_bujinov/org-hierarchy-checker.git
-git branch -M main
-git push -uf origin main
-```
 
-## Integrate with your tools
+Each line should include:
 
-- [ ] [Set up project integrations](https://git.epam.com/egor_bujinov/org-hierarchy-checker/-/settings/integrations)
+- **Id**: Unique identifier for each employee.
+- **firstName** and **lastName**: Names of the employee.
+- **salary**: Annual salary of the employee as an integer.
+- **managerId**: (Optional) ID of the employee's manager. The CEO will not have a manager ID.
 
-## Collaborate with your team
+## Project Structure
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+### Simplified Component Overview
 
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+- **OrgHierarchyChecker**: Main entry point for the application. It loads the CSV data, performs
+  analysis, and prints results to the console.
+- **OrgHierarchyLoader**: Responsible for loading and parsing the CSV file to initialize
+  an `Organization` object, containing the list of employees.
+- **OrgHierarchyAnalyzerService**: Contains methods for hierarchy validation and salary analysis,
+  checking each employee’s reporting line and identifying managers who are underpaid or overpaid.
+- **Model Classes**:
+    - **Employee**: Represents an individual employee with properties like ID, name, salary, and
+      manager reference.
+    - **Organization**: A collection of `Employee` objects that makes up the company’s hierarchy,
+      allowing for easy employee retrieval and reporting line calculations.
 
 ## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+### Running the Application
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+1. **Build**: Use Maven to build the project:
+   ```bash
+   mvn clean install
+   ```
+2. **Run**: Run the application, specifying the path to the CSV file if desired:
+   ```bash
+   java -jar target/org-hierarchy-checker.jar [path-to-your-csv-file]
+   ```
+   If no file path is provided, the application defaults to using `org-hierarchy-example-1.csv`.
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+### Example Output
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+Upon execution, the application provides analysis results in the following format:
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+```
+Organization Structure:
+- Employee details and hierarchy as parsed from the CSV.
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+Too long reporting lines:  
+[Employee] reports to [Reporting Line]
 
-## License
-For open source projects, say how it is licensed.
+Underpaid managers:  
+[Manager] earns less than intended by [Amount]
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Overpaid managers:  
+[Manager] earns more than intended by [Amount]
+```
