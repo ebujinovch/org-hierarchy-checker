@@ -18,7 +18,7 @@ import java.util.stream.Stream;
  * hierarchy of employees. It calculates various metrics related to employee salaries, reporting
  * lines, and identifies issues such as underpaid or overpaid managers and long reporting lines.
  */
-public class SimpleOrgHierarchyReportingService implements OrgHierarchyReportingService {
+class SimpleOrgHierarchyReportingService implements OrgHierarchyReportingService {
 
   private final ReportingConfig config;
 

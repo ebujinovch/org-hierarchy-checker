@@ -1,8 +1,7 @@
 package com.epam.swissre.interview.orghierarchy.service;
 
 import com.epam.swissre.interview.orghierarchy.config.ConfigLoader;
-import com.epam.swissre.interview.orghierarchy.port.ConsoleReportsWriter;
-import com.epam.swissre.interview.orghierarchy.port.CsvOrgHierarchyLoader;
+import com.epam.swissre.interview.orghierarchy.port.PortFactory;
 
 /**
  * The {@link ServiceFactory} is responsible for building and wiring together the instances of the
@@ -19,8 +18,8 @@ public interface ServiceFactory {
   static OrgHierarchyAnalyzerService newOrgHierarchyAnalyzerService() {
     // can be parameterized if/when other implementations of the service, loader, or writer are available
     return new SimpleOrgHierarchyAnalyzerService(
-        new CsvOrgHierarchyLoader(ConfigLoader.getCsvSourceConfig()),
-        new ConsoleReportsWriter(System.out),
+        PortFactory.newCsvOrgHierarchyLoader(),
+        PortFactory.newConsoleReportsWriter(),
         new SimpleOrgHierarchyReportingService(ConfigLoader.getReportingConfig()));
   }
 }

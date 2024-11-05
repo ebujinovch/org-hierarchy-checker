@@ -22,7 +22,7 @@ import java.util.List;
  * proper formatting of CSV lines.
  * </p>
  */
-public final class CsvOrgHierarchyLoader implements OrgHierarchyLoader {
+class CsvOrgHierarchyLoader implements OrgHierarchyLoader {
 
   private final CsvSourceConfig config;
 

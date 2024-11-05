@@ -63,7 +63,7 @@ class CsvOrgHierarchyLoaderTest {
   }
 
   @Test
-  public void loadOrgHierarchyCsv_tooManyLines_shouldThrowBadFileException() {
+  void loadOrgHierarchyCsv_tooManyLines_shouldThrowBadFileException() {
     // Prepare a CSV string with 2 lines (1 header + 1 employee lines)
     String csvContent = """
         Id,firstName,lastName,salary,managerId

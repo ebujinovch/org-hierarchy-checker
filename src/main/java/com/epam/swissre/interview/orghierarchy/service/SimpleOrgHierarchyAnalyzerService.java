@@ -9,7 +9,7 @@ import com.epam.swissre.interview.orghierarchy.port.ReportsWriter;
  * builds the reports with the help of {@link OrgHierarchyReportingService}, and outputs them via
  * the {@link ReportsWriter}
  */
-public class SimpleOrgHierarchyAnalyzerService implements OrgHierarchyAnalyzerService {
+class SimpleOrgHierarchyAnalyzerService implements OrgHierarchyAnalyzerService {
 
   private final OrgHierarchyLoader loader;
   private final ReportsWriter writer;

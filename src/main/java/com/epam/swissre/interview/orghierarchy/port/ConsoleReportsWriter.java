@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 /**
  * Outputs the reports on the organization hierarchy to the console.
  */
-public class ConsoleReportsWriter implements ReportsWriter {
+class ConsoleReportsWriter implements ReportsWriter {
 
   private final PrintStream outputStream;
 
