@@ -13,10 +13,10 @@ class EmployeeTest {
   void createEmployee_withValidData_shouldSetAllFieldsCorrectly() {
     Employee employee = new Employee(1, "John", "Doe", 50000, 2);
 
-    assertEquals(1, employee.getId());
-    assertEquals("John", employee.getFirstName());
-    assertEquals("Doe", employee.getLastName());
-    assertEquals(50000, employee.getSalary());
+    assertEquals(1, employee.id());
+    assertEquals("John", employee.firstName());
+    assertEquals("Doe", employee.lastName());
+    assertEquals(50000, employee.salary());
     assertEquals(Optional.of(2), employee.getManagerId());
   }
 
@@ -25,23 +25,6 @@ class EmployeeTest {
     Employee employee = new Employee(1, "John", "Doe", 50000, null);
 
     assertTrue(employee.getManagerId().isEmpty());
-  }
-
-  @Test
-  void setManager_withValidManager_shouldSetTheManagerFieldCorrectly() {
-    Employee manager = new Employee(2, "Jane", "Smith", 60000, null);
-    Employee employee = new Employee(1, "John", "Doe", 50000, 2);
-
-    employee.setManager(manager);
-
-    assertEquals(Optional.of(manager), employee.getManager());
-  }
-
-  @Test
-  void getManager_withoutSettingManager_shouldReturnEmptyOptional() {
-    Employee employee = new Employee(1, "John", "Doe", 50000, 2);
-
-    assertTrue(employee.getManager().isEmpty());
   }
 
   @Test

@@ -5,124 +5,35 @@ import java.util.Optional;
 /**
  * Represents an employee in the organization. Each employee has an ID, name, salary, and an
  * optional manager.
+ *
+ * <p>Instances of this record are immutable and include validation to ensure correct values
+ * are provided for fields.
  */
-public class Employee {
-
-  private final int id;
-  private final String firstName;
-  private final String lastName;
-  private final int salary;
-  private final Integer managerId;
-  private Employee manager; // Reference to the direct manager, set dynamically after instantiation.
+public record Employee(int id, String firstName, String lastName, int salary, Integer managerId) {
 
   /**
-   * Constructs an Employee instance.
+   * Constructs an Employee instance with the specified attributes.
    *
-   * @param id        the unique identifier of the employee
-   * @param firstName the first name of the employee
-   * @param lastName  the last name of the employee
-   * @param salary    the salary of the employee in integer format
+   * @param id        the unique identifier of the employee, must be positive
+   * @param firstName the first name of the employee, must not be null
+   * @param lastName  the last name of the employee, must not be null
+   * @param salary    the salary of the employee in integer format, must be non-negative
    * @param managerId the ID of the direct manager, or null if no manager exists
+   * @throws IllegalArgumentException if the id is non-positive, salary is negative, or any required
+   *                                  field is null
    */
-  public Employee(int id, String firstName, String lastName, int salary, Integer managerId) {
+  public Employee {
     if (id <= 0 || salary < 0 || firstName == null || lastName == null) {
       throw new IllegalArgumentException("Invalid employee parameters provided.");
     }
-    this.id = id;
-    this.firstName = firstName;
-    this.lastName = lastName;
-    this.salary = salary;
-    this.managerId = managerId;
-  }
-
-  /**
-   * Returns the employee ID.
-   *
-   * @return the unique ID of the employee
-   */
-  public int getId() {
-    return id;
-  }
-
-  /**
-   * Returns the first name of the employee.
-   *
-   * @return the first name of the employee
-   */
-  public String getFirstName() {
-    return firstName;
-  }
-
-  /**
-   * Returns the last name of the employee.
-   *
-   * @return the last name of the employee
-   */
-  public String getLastName() {
-    return lastName;
-  }
-
-  /**
-   * Returns the salary of the employee.
-   *
-   * @return the salary as an integer
-   */
-  public int getSalary() {
-    return salary;
   }
 
   /**
    * Returns the ID of the direct manager, if available.
    *
-   * @return an Optional containing the manager ID or empty if no manager
+   * @return an Optional containing the manager ID, or an empty Optional if no manager exists
    */
   public Optional<Integer> getManagerId() {
     return Optional.ofNullable(managerId);
-  }
-
-  /**
-   * Returns the direct manager of this employee, if available.
-   *
-   * @return an Optional containing the direct manager or empty if no manager
-   */
-  public Optional<Employee> getManager() {
-    return Optional.ofNullable(manager);
-  }
-
-  /**
-   * Sets the direct manager for this employee.
-   *
-   * @param manager the direct manager to assign
-   */
-  public void setManager(Employee manager) {
-    this.manager = manager;
-  }
-
-  @Override
-  public String toString() {
-    return "Employee{" +
-        "id=" + id +
-        ", firstName='" + firstName + '\'' +
-        ", lastName='" + lastName + '\'' +
-        ", salary=" + salary +
-        ", managerId=" + managerId +
-        '}';
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    Employee employee = (Employee) o;
-    return id == employee.id;
-  }
-
-  @Override
-  public int hashCode() {
-    return id;
   }
 }

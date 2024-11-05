@@ -1,4 +1,4 @@
-package com.epam.swissre.interview.orghierarchy;
+package com.epam.swissre.interview.orghierarchy.port;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.epam.swissre.interview.orghierarchy.config.CsvSourceConfig;
 import com.epam.swissre.interview.orghierarchy.exception.BadCsvFileException;
 import com.epam.swissre.interview.orghierarchy.exception.EmployeeCsvLineException;
 import com.epam.swissre.interview.orghierarchy.model.Employee;
@@ -15,8 +16,10 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 
-class OrgHierarchyLoaderTest {
+class CsvOrgHierarchyLoaderTest {
 
   private static final String VALID_CSV_CONTENT = """
       Id,firstName,lastName,salary,managerId
@@ -36,7 +39,9 @@ class OrgHierarchyLoaderTest {
       123,Joe,Doe,60000,
       124,Martin
       """;
-  private final OrgHierarchyLoader loader = new OrgHierarchyLoader();
+  private static final String DEFAULT_SOURCE = "default-file.csv";
+  private final CsvOrgHierarchyLoader loader = new CsvOrgHierarchyLoader(
+      new CsvSourceConfig(DEFAULT_SOURCE, 1001));
 
   @Test
   void loadOrgHierarchyCsv_withValidData_shouldLoadAllEmployeesCorrectly() {
@@ -47,10 +52,10 @@ class OrgHierarchyLoaderTest {
     assertEquals(5, organization.getEmployees().size(), "Should contain exactly 5 employees");
 
     Employee brett = organization.getEmployeeById(305).orElseThrow();
-    assertEquals(305, brett.getId(), "Brett's id should match");
-    assertEquals("Brett", brett.getFirstName(), "Brett's first name should match");
-    assertEquals("Hardleaf", brett.getLastName(), "Brett's last name should match");
-    assertEquals(34000, brett.getSalary(), "Brett's salary should match");
+    assertEquals(305, brett.id(), "Brett's id should match");
+    assertEquals("Brett", brett.firstName(), "Brett's first name should match");
+    assertEquals("Hardleaf", brett.lastName(), "Brett's last name should match");
+    assertEquals(34000, brett.salary(), "Brett's salary should match");
     assertEquals(300, brett.getManagerId().orElse(0), "Brett's manager id should match");
 
     assertTrue(organization.getEmployeeById(123).orElseThrow().getManagerId().isEmpty(),
@@ -58,29 +63,27 @@ class OrgHierarchyLoaderTest {
   }
 
   @Test
-  public void loadOrgHierarchyCsv_tooManyLines_shouldThrowBadCsvFileException() {
-    // Prepare a CSV string with 1002 lines (1 header + 1001 employee lines)
-    StringBuilder csvContent = new StringBuilder("Id,firstName,lastName,salary,managerId\n");
-    for (int i = 1; i <= 1001; i++) {
-      csvContent.append(i).append(",FirstName").append(i)
-          .append(",LastName").append(i)
-          .append(",50000,").append((i > 1) ? (i - 1) : "").append("\n");
-    }
+  public void loadOrgHierarchyCsv_tooManyLines_shouldThrowBadFileException() {
+    // Prepare a CSV string with 2 lines (1 header + 1 employee lines)
+    String csvContent = """
+        Id,firstName,lastName,salary,managerId
+        1, John, Doe, 50000,
+        """;
 
     // Create a reader from the CSV string
-    BufferedReader reader = new BufferedReader(new StringReader(csvContent.toString()));
-    OrgHierarchyLoader loader = new OrgHierarchyLoader();
+    BufferedReader reader = new BufferedReader(new StringReader(csvContent));
+    CsvOrgHierarchyLoader loader = new CsvOrgHierarchyLoader(new CsvSourceConfig(null, 1));
 
     // Assert that a BadCsvFileException is thrown
     BadCsvFileException exception = assertThrows(BadCsvFileException.class,
         () -> loader.loadOrgHierarchyCsv(reader));
-    assertEquals("The provided file is too long: contains 1002 rows, while the allowed max is 1001",
+    assertEquals("The provided file is too long: contains 2 rows, while the allowed max is 1",
         exception.getMessage(),
         "Expected the exception to state the acceptable limits of the file.");
   }
 
   @Test
-  void loadOrgHierarchyCsv_withInvalidSalary_shouldThrowEmployeeCsvLineException() {
+  void loadOrgHierarchyCsv_withInvalidSalary_shouldThrowEmployeeLineException() {
     EmployeeCsvLineException exception = assertThrows(EmployeeCsvLineException.class,
         () -> loader.loadOrgHierarchyCsv(new StringReader(INVALID_CSV_LINE_CONTENT)));
 
@@ -94,7 +97,7 @@ class OrgHierarchyLoaderTest {
   }
 
   @Test
-  void loadOrgHierarchyCsv_withIncompleteLine_shouldThrowEmployeeCsvLineException() {
+  void loadOrgHierarchyCsv_withIncompleteLine_shouldThrowEmployeeLineException() {
     EmployeeCsvLineException exception = assertThrows(EmployeeCsvLineException.class,
         () -> loader.loadOrgHierarchyCsv(
             new StringReader(INCOMPLETE_CSV_LINE_CONTENT)));
@@ -109,7 +112,7 @@ class OrgHierarchyLoaderTest {
   }
 
   @Test
-  void loadOrgHierarchyCsv_withEmptyFile_shouldReturnEmptyOrganization() {
+  void loadOrgHierarchy_withEmptyFile_shouldReturnEmptyOrganization() {
     String emptyCsvContent = "Id,firstName,lastName,salary,managerId\n";
 
     Organization organization = loader.loadOrgHierarchyCsv(
@@ -137,7 +140,7 @@ class OrgHierarchyLoaderTest {
   }
 
   @Test
-  void loadOrgHierarchyCsv_withNonNumericId_shouldThrowEmployeeCsvLineException() {
+  void loadOrgHierarchyCsv_withNonNumericId_shouldThrowEmployeeLineException() {
     String invalidIdCsv = """
         Id,firstName,lastName,salary,managerId
         invalid_id,Joe,Doe,60000,
@@ -151,21 +154,21 @@ class OrgHierarchyLoaderTest {
   }
 
   @Test
-  void loadOrgHierarchyCsv_withNullManagerId_shouldSetManagerIdToNullForCEO() {
+  void loadOrgHierarchy_withNullManagerId_shouldSetManagerIdToNullForCEO() {
     Organization organization = loader.loadOrgHierarchyCsv(
         new StringReader(VALID_CSV_CONTENT));
 
     Employee ceo = organization.getEmployeeById(123).orElseThrow();
-    assertTrue(ceo.getManager().isEmpty(), "CEO should have a null manager ID");
+    assertTrue(ceo.getManagerId().isEmpty(), "CEO should have a null manager ID");
   }
 
   @Test
-  void loadOrgHierarchyCsv_withMissingFile_shouldThrowMissingCsvFileException() {
+  void loadOrgHierarchyCsv_withMissingFile_shouldThrowMissingFileException() {
     String nonExistentFilePath = "non-existent-file.csv";
 
     BadCsvFileException exception = assertThrows(
         BadCsvFileException.class,
-        () -> loader.loadOrgHierarchyCsv(nonExistentFilePath)
+        () -> loader.loadOrgHierarchy(nonExistentFilePath)
     );
 
     assertEquals("CSV file is missing or inaccessible: " + nonExistentFilePath,
@@ -173,8 +176,21 @@ class OrgHierarchyLoaderTest {
         "Exception message should indicate missing or inaccessible file");
   }
 
+  @ParameterizedTest
+  @NullAndEmptySource
+  void loadOrgHierarchyCsv_withNoSource_shouldDefaultToConfig(String source) {
+    BadCsvFileException exception = assertThrows(
+        BadCsvFileException.class,
+        () -> loader.loadOrgHierarchy(source)
+    );
+
+    assertEquals("CSV file is missing or inaccessible: " + DEFAULT_SOURCE,
+        exception.getMessage(),
+        "Exception message should indicate the default file path");
+  }
+
   @Test
-  void loadOrgHierarchyCsv_withInaccessibleFile_shouldThrowMissingCsvFileException()
+  void loadOrgHierarchyCsv_withInaccessibleFile_shouldThrowMissingFileException()
       throws IOException {
     Reader reader = Reader.nullReader();
     reader.close();

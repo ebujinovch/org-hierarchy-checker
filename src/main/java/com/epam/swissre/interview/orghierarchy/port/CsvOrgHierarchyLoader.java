@@ -1,5 +1,6 @@
-package com.epam.swissre.interview.orghierarchy;
+package com.epam.swissre.interview.orghierarchy.port;
 
+import com.epam.swissre.interview.orghierarchy.config.CsvSourceConfig;
 import com.epam.swissre.interview.orghierarchy.exception.BadCsvFileException;
 import com.epam.swissre.interview.orghierarchy.exception.EmployeeCsvLineException;
 import com.epam.swissre.interview.orghierarchy.model.Employee;
@@ -13,18 +14,21 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * The {@code OrgHierarchyLoader} class is responsible for loading and parsing organizational
- * hierarchy data from a CSV file or any text source. It converts CSV lines into {@link Employee}
- * objects and constructs an {@link Organization} instance populated with these employees.
+ * The {@code CsvOrgHierarchyLoader} class loads and parses organizational hierarchy data from a CSV
+ * file. It converts CSV lines into {@link Employee} objects and constructs an {@link Organization}
+ * instance populated with these employees.
  * <p>
  * The class enforces constraints on the input data, including a maximum number of employees and
  * proper formatting of CSV lines.
  * </p>
  */
-public final class OrgHierarchyLoader {
+public final class CsvOrgHierarchyLoader implements OrgHierarchyLoader {
 
-  // assuming that 1000 is the max number of employees, adding another one for the header
-  private static final int MAX_LINE_COUNT = 1001;
+  private final CsvSourceConfig config;
+
+  public CsvOrgHierarchyLoader(CsvSourceConfig csvSourceConfig) {
+    config = csvSourceConfig;
+  }
 
   /**
    * Parses a single line of CSV data into an {@link Employee} object.
@@ -55,16 +59,22 @@ public final class OrgHierarchyLoader {
    * Reads employee data from a CSV file path and returns a new {@link Organization} instance
    * populated with employees.
    *
-   * @param filePath the path to the CSV file
+   * @param source optional path to the CSV file. Defaulting to a default path specified in the
+   *               config
    * @return a new {@link Organization} instance with loaded employees
    * @throws BadCsvFileException      if the CSV file is missing, inaccessible, or too long
    * @throws EmployeeCsvLineException if an employee line is improperly formatted
    */
-  public Organization loadOrgHierarchyCsv(String filePath) {
-    try (Reader fileReader = new FileReader(filePath)) {
-      return loadOrgHierarchyCsv(fileReader);
+  @Override
+  public Organization loadOrgHierarchy(String source) {
+    String actualSource =
+        source == null || source.trim().isEmpty() ? config.defaultSource() : source;
+    try (Reader fileReader = new FileReader(actualSource)) {
+      Organization organization = loadOrgHierarchyCsv(fileReader);
+      System.out.println("Loaded the following organization: " + organization);
+      return organization;
     } catch (IOException e) {
-      throw new BadCsvFileException("CSV file is missing or inaccessible: " + filePath, e);
+      throw new BadCsvFileException("CSV file is missing or inaccessible: " + actualSource, e);
     }
   }
 
@@ -79,7 +89,7 @@ public final class OrgHierarchyLoader {
    *                                  long
    * @throws EmployeeCsvLineException if an employee line is improperly formatted
    */
-  public Organization loadOrgHierarchyCsv(Reader reader) {
+  Organization loadOrgHierarchyCsv(Reader reader) {
     List<String> lines;
 
     try (reader) {
@@ -88,10 +98,10 @@ public final class OrgHierarchyLoader {
       throw new BadCsvFileException("Error reading from the provided reader.", e);
     }
 
-    if (lines.size() > MAX_LINE_COUNT) {
+    if (lines.size() > config.maxLineCount()) {
       throw new BadCsvFileException(String.format(
           "The provided file is too long: contains %d rows, while the allowed max is %d",
-          lines.size(), MAX_LINE_COUNT));
+          lines.size(), config.maxLineCount()));
     }
 
     Organization organization = new Organization();
@@ -101,8 +111,7 @@ public final class OrgHierarchyLoader {
         .filter(line -> !line.trim().isEmpty())
         .forEach(line -> {
           try {
-            Employee employee = parseEmployee(line);
-            organization.addEmployee(employee);
+            organization.addEmployee(parseEmployee(line));
           } catch (IllegalArgumentException e) {
             throw new EmployeeCsvLineException("Error parsing employee data: " + line, e);
           }

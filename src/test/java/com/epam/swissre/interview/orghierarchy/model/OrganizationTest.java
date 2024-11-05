@@ -39,7 +39,7 @@ class OrganizationTest {
     IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
         () -> organization.addEmployee(employee2),
         "Employee with the same ID already exists.");
-    assertEquals("Duplicate employee ID: " + employee2.getId(), exception.getMessage(),
+    assertEquals("Duplicate employee ID: " + employee2.id(), exception.getMessage(),
         "Expected the message to reflect that employee is null");
   }
 

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.epam.swissre.interview.orghierarchy.Fixture;
+import com.epam.swissre.interview.orghierarchy.config.ReportingConfig;
 import com.epam.swissre.interview.orghierarchy.exception.BadManagerReferenceException;
 import com.epam.swissre.interview.orghierarchy.exception.CircularReferenceException;
 import com.epam.swissre.interview.orghierarchy.model.Employee;
@@ -13,24 +14,28 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-class OrgHierarchyAnalyzerServiceTest implements Fixture {
+class SimpleOrgHierarchyReportingServiceTest implements Fixture {
 
-  private final OrgHierarchyAnalyzerService analyzerService = new OrgHierarchyAnalyzerService();
+  private static final ReportingConfig CONFIG = new ReportingConfig(4, 1.2, 1.5);
+
+  private final SimpleOrgHierarchyReportingService reportingService = new SimpleOrgHierarchyReportingService(
+      CONFIG);
 
   @Test
   void buildReportingLines_withValidHierarchy_shouldReturnExpectedReportingLines() {
     Organization organization = Fixture.createSampleOrganization();
 
-    Map<Employee, List<Integer>> reportingLines = analyzerService.buildReportingLines(organization);
+    Map<Employee, List<Integer>> reportingLines = reportingService.buildReportingLines(
+        organization);
 
     assertEquals(6, reportingLines.size(), "Expected reporting lines for all employees.");
-    assertEquals(List.of(CEO.getId()), reportingLines.get(MANAGER_1));
-    assertEquals(List.of(MANAGER_1.getId(), CEO.getId()), reportingLines.get(MANAGER_2));
-    assertEquals(List.of(MANAGER_2.getId(), MANAGER_1.getId(), CEO.getId()),
+    assertEquals(List.of(CEO.id()), reportingLines.get(MANAGER_1));
+    assertEquals(List.of(MANAGER_1.id(), CEO.id()), reportingLines.get(MANAGER_2));
+    assertEquals(List.of(MANAGER_2.id(), MANAGER_1.id(), CEO.id()),
         reportingLines.get(MANAGER_3));
-    assertEquals(List.of(MANAGER_3.getId(), MANAGER_2.getId(), MANAGER_1.getId(), CEO.getId()),
+    assertEquals(List.of(MANAGER_3.id(), MANAGER_2.id(), MANAGER_1.id(), CEO.id()),
         reportingLines.get(EMPLOYEE));
-    assertEquals(List.of(MANAGER_2.getId(), MANAGER_1.getId(), CEO.getId()),
+    assertEquals(List.of(MANAGER_2.id(), MANAGER_1.id(), CEO.id()),
         reportingLines.get(EMPLOYEE_SENIOR));
   }
 
@@ -41,7 +46,7 @@ class OrgHierarchyAnalyzerServiceTest implements Fixture {
 
     BadManagerReferenceException exception = assertThrows(
         BadManagerReferenceException.class,
-        () -> analyzerService.buildReportingLines(organization)
+        () -> reportingService.buildReportingLines(organization)
     );
 
     assertEquals("The hierarchy must have exactly one CEO, but instead has the following: []",
@@ -57,7 +62,7 @@ class OrgHierarchyAnalyzerServiceTest implements Fixture {
 
     BadManagerReferenceException exception = assertThrows(
         BadManagerReferenceException.class,
-        () -> analyzerService.buildReportingLines(organization)
+        () -> reportingService.buildReportingLines(organization)
     );
 
     assertEquals("The hierarchy must have exactly one CEO, but instead has the following: [1, 7]",
@@ -72,7 +77,7 @@ class OrgHierarchyAnalyzerServiceTest implements Fixture {
 
     BadManagerReferenceException exception = assertThrows(
         BadManagerReferenceException.class,
-        () -> analyzerService.buildReportingLines(organization)
+        () -> reportingService.buildReportingLines(organization)
     );
 
     assertEquals("Bad manager id [-1] specified for employee [999]", exception.getMessage(),
@@ -92,7 +97,7 @@ class OrgHierarchyAnalyzerServiceTest implements Fixture {
 
     CircularReferenceException exception = assertThrows(
         CircularReferenceException.class,
-        () -> analyzerService.buildReportingLines(organization)
+        () -> reportingService.buildReportingLines(organization)
     );
 
     assertEquals(
@@ -105,8 +110,11 @@ class OrgHierarchyAnalyzerServiceTest implements Fixture {
   void getLongReportingLines_withExcessiveManagerCount_shouldReturnReportingLinesExceedingMax() {
     Organization organization = Fixture.createSampleOrganization();
 
-    Map<Employee, List<Integer>> longReportingLines = analyzerService.getLongReportingLines(
-        organization, 2);
+    SimpleOrgHierarchyReportingService reportingService = new SimpleOrgHierarchyReportingService(
+        new ReportingConfig(2, 1.2, 1.5));
+
+    Map<Employee, List<Integer>> longReportingLines = reportingService.getLongReportingLines(
+        organization);
 
     assertEquals(1, longReportingLines.size(), "Expected one employee with long reporting line.");
     assertTrue(longReportingLines.containsKey(EMPLOYEE),
@@ -117,8 +125,11 @@ class OrgHierarchyAnalyzerServiceTest implements Fixture {
   void getLongReportingLines_withAcceptableManagerCount_shouldReturnEmptyMap() {
     Organization organization = Fixture.createSampleOrganization();
 
-    Map<Employee, List<Integer>> longReportingLines = analyzerService.getLongReportingLines(
-        organization, 3);
+    SimpleOrgHierarchyReportingService reportingService = new SimpleOrgHierarchyReportingService(
+        new ReportingConfig(3, 1.2, 1.5));
+
+    Map<Employee, List<Integer>> longReportingLines = reportingService.getLongReportingLines(
+        organization);
 
     assertTrue(longReportingLines.isEmpty(),
         "Expected no long reporting lines within acceptable count.");
@@ -134,8 +145,7 @@ class OrgHierarchyAnalyzerServiceTest implements Fixture {
     organization.addEmployee(MANAGER_3);
     organization.addEmployee(EMPLOYEE);
 
-    Map<Employee, Double> underpaidManagers = analyzerService.getUnderpaidManagers(organization,
-        1.2);
+    Map<Employee, Double> underpaidManagers = reportingService.getUnderpaidManagers(organization);
 
     assertEquals(1, underpaidManagers.size(), "Expected one underpaid manager.");
     assertTrue(underpaidManagers.containsKey(underpaidManager),
@@ -148,8 +158,7 @@ class OrgHierarchyAnalyzerServiceTest implements Fixture {
   void getUnderpaidManagers_withAllManagersMeetingMinimum_shouldReturnEmptyMap() {
     Organization organization = Fixture.createSampleOrganization();
 
-    Map<Employee, Double> underpaidManagers = analyzerService.getUnderpaidManagers(organization,
-        1.2);
+    Map<Employee, Double> underpaidManagers = reportingService.getUnderpaidManagers(organization);
 
     assertTrue(underpaidManagers.isEmpty(), "Expected no underpaid managers.");
   }
@@ -164,7 +173,7 @@ class OrgHierarchyAnalyzerServiceTest implements Fixture {
     organization.addEmployee(MANAGER_3);
     organization.addEmployee(EMPLOYEE);
 
-    Map<Employee, Double> overpaidManagers = analyzerService.getOverpaidManagers(organization, 1.5);
+    Map<Employee, Double> overpaidManagers = reportingService.getOverpaidManagers(organization);
 
     assertEquals(1, overpaidManagers.size(), "Expected one overpaid manager.");
     assertTrue(overpaidManagers.containsKey(overpaidManager),
@@ -177,7 +186,7 @@ class OrgHierarchyAnalyzerServiceTest implements Fixture {
   void getOverpaidManagers_withAllManagersWithinMaximum_shouldReturnEmptyMap() {
     Organization organization = Fixture.createSampleOrganization();
 
-    Map<Employee, Double> overpaidManagers = analyzerService.getOverpaidManagers(organization, 1.5);
+    Map<Employee, Double> overpaidManagers = reportingService.getOverpaidManagers(organization);
 
     assertTrue(overpaidManagers.isEmpty(), "Expected no overpaid managers.");
   }

@@ -25,8 +25,8 @@ public final class Organization {
     if (employee == null) {
       throw new IllegalArgumentException("Employee cannot be null.");
     }
-    if (employees.put(employee.getId(), employee) != null) {
-      throw new IllegalArgumentException("Duplicate employee ID: " + employee.getId());
+    if (employees.put(employee.id(), employee) != null) {
+      throw new IllegalArgumentException("Duplicate employee ID: " + employee.id());
     }
   }
 
